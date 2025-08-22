@@ -1,6 +1,7 @@
 // Game state variables
 let targetNumber;
 let attemptsLeft;
+let defaultAttempsLeft;
 let gameActive;
 let previousGuesses;
 
@@ -23,7 +24,8 @@ const previousGuessesContainer = document.getElementById("previousGuesses");
 function initGame() {
   // Generate random number between 1 and 100
   targetNumber = Math.floor(Math.random() * 100) + 1;
-  attemptsLeft = 10;
+  defaultAttempsLeft = 10;
+  attemptsLeft = defaultAttempsLeft;
   gameActive = true;
   previousGuesses = [];
 
@@ -55,6 +57,15 @@ function initGame() {
  */
 function validateInput(input) {
   // YOUR CODE HERE
+  if (input === "") return { isValid: false, message: "Please enter a number!", type: "error" };
+  let number = Number(input);
+  if (isNaN(number)) {
+    return { isValid: false, message: "Please enter a number!", type: "error" };
+  } else if (number < 0 || number > 100) {
+    return { isValid: false, message: "Please enter a number between 1 and 100!", type: "error" };
+  } else if (previousGuesses.includes(number)) {
+    return { isValid: false, message: "You already guessed that number!", type: "error" };
+  }
   return { isValid: true, number: number };
 }
 
@@ -65,17 +76,7 @@ function validateInput(input) {
  */
 function showFeedback(message, type = "info") {
   feedback.textContent = message;
-  feedback.classList.remove(
-    "hidden",
-    "bg-green-100",
-    "text-green-800",
-    "bg-red-100",
-    "text-red-800",
-    "bg-blue-100",
-    "text-blue-800",
-    "bg-yellow-100",
-    "text-yellow-800"
-  );
+  feedback.classList.remove("hidden", "bg-green-100", "text-green-800", "bg-red-100", "text-red-800", "bg-blue-100", "text-blue-800", "bg-yellow-100", "text-yellow-800");
 
   // Apply appropriate styling based on message type
   switch (type) {
@@ -118,8 +119,26 @@ function addToPreviousGuesses(guess) {
  */
 function processGuess(guess) {
   // YOUR CODE HERE
+  if (guess === targetNumber) {
+    showFeedback("🎉 Congratulations! You guessed it!", "success");
+    endGame(true);
+    return;
+  } else if (guess > targetNumber) {
+    showFeedback("📉 Too high! Try a lower number.", "high");
+  } else {
+    showFeedback("📈 Too low! Try a higher number.", "low");
+  }
+  addToPreviousGuesses(guess);
+  changeAttemptsLeft();
 }
 
+function changeAttemptsLeft() {
+  attemptsLeft--;
+  attemptsLeftSpan.textContent = attemptsLeft;
+  if (attemptsLeft <= 0) {
+    endGame(false);
+  }
+}
 /**
  * End the current game
  * @param {boolean} won - Whether the player won or lost
@@ -135,12 +154,10 @@ function endGame(won) {
 
   // Set appropriate game over message
   if (won) {
-    const attempts = 10 - attemptsLeft;
+    const attempts = defaultAttempsLeft - attemptsLeft + 1;
     gameOverMessage.innerHTML = `
             <h2 class="text-2xl font-bold text-green-600 mb-2">🏆 You Won!</h2>
-            <p class="text-gray-700">You guessed the number <strong>${targetNumber}</strong> in <strong>${attempts}</strong> attempt${
-      attempts === 1 ? "" : "s"
-    }!</p>
+            <p class="text-gray-700">You guessed the number <strong>${targetNumber}</strong> in <strong>${attempts}</strong> attempt${attempts === 1 ? "" : "s"}!</p>
         `;
   } else {
     gameOverMessage.innerHTML = `
@@ -166,10 +183,28 @@ function handleSubmit() {
   }
 
   processGuess(validation.number);
+  console.log(attemptsLeft);
+
+  guessInput.value = "";
+  guessInput.focus();
 }
 
 // Event listeners
 // YOUR CODE HERE
+submitBtn.addEventListener("click", function (e) {
+  e.preventDefault();
+  handleSubmit();
+  // processGuess();
+});
+resetBtn.addEventListener("click", function (e) {
+  window.location.reload();
+});
+window.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    handleSubmit();
+  }
+});
 
 // Initialize the game when page loads
 initGame();
