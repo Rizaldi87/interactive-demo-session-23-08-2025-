@@ -119,6 +119,8 @@ function addToPreviousGuesses(guess) {
  */
 function processGuess(guess) {
   // YOUR CODE HERE
+  attemptsLeft--;
+  attemptsLeftSpan.textContent = attemptsLeft;
   if (guess === targetNumber) {
     showFeedback("🎉 Congratulations! You guessed it!", "success");
     endGame(true);
@@ -129,16 +131,11 @@ function processGuess(guess) {
     showFeedback("📈 Too low! Try a higher number.", "low");
   }
   addToPreviousGuesses(guess);
-  changeAttemptsLeft();
-}
-
-function changeAttemptsLeft() {
-  attemptsLeft--;
-  attemptsLeftSpan.textContent = attemptsLeft;
   if (attemptsLeft <= 0) {
     endGame(false);
   }
 }
+
 /**
  * End the current game
  * @param {boolean} won - Whether the player won or lost
@@ -154,7 +151,7 @@ function endGame(won) {
 
   // Set appropriate game over message
   if (won) {
-    const attempts = defaultAttempsLeft - attemptsLeft + 1;
+    const attempts = defaultAttempsLeft - attemptsLeft;
     gameOverMessage.innerHTML = `
             <h2 class="text-2xl font-bold text-green-600 mb-2">🏆 You Won!</h2>
             <p class="text-gray-700">You guessed the number <strong>${targetNumber}</strong> in <strong>${attempts}</strong> attempt${attempts === 1 ? "" : "s"}!</p>
@@ -183,7 +180,6 @@ function handleSubmit() {
   }
 
   processGuess(validation.number);
-  console.log(attemptsLeft);
 
   guessInput.value = "";
   guessInput.focus();
